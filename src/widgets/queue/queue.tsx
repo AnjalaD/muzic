@@ -14,7 +14,7 @@ export function Queue() {
   const queue = useQueueStore();
 
   return (
-    <Card className="col-span-2">
+    <Card className="md:col-span-2">
       <CardHeader>
         <div className="flex gap-4">
           <div className="flex-grow">

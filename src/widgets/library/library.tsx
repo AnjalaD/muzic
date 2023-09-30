@@ -16,7 +16,7 @@ export function Library() {
   const addToQueue = useQueueStore((state) => state.add);
 
   return (
-    <Card className="col-span-2">
+    <Card className="md:col-span-2">
       <CardHeader>
         <CardTitle>Library</CardTitle>
         <CardDescription>Everything you have.</CardDescription>

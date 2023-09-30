@@ -10,7 +10,7 @@ export default function App() {
   return (
     <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
       <Layout>
-        <section className="container grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-8 pt-6 md:py-10">
+        <section className="container grid grid-cols-1 md:grid-cols-2 gap-6 pb-8 pt-6 md:py-10">
           <Player />
           <LocalImporter />
 
