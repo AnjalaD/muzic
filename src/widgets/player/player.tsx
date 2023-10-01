@@ -54,7 +54,7 @@ export function Player() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="overflow-hidden whitespace-nowrap text-ellipsis">
+        <CardTitle className="overflow-x-clip whitespace-nowrap text-ellipsis">
           {nowPlaying?.title ?? "Nothing to play"}
         </CardTitle>
         <CardDescription>
