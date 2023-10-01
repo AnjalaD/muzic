@@ -32,7 +32,7 @@ export function Queue() {
       <CardContent className="flex flex-col gap-2">
         {queue.data.map((s, index) => (
           <SoundCard
-            key={s.title}
+            key={s.title + index}
             sound={s}
             nowPlaying={queue.currentIndex === index}
             actions={

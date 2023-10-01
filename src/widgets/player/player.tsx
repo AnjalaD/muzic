@@ -19,6 +19,8 @@ import {
   SkipForwardIcon,
 } from "lucide-react";
 
+let prevIndex: number;
+
 export function Player() {
   const { sound, setSound } = usePlayerStore();
   const { currentIndex, data, goNext, goPrev } = useQueueStore();
@@ -28,11 +30,15 @@ export function Player() {
   const [isPlaying, setIsPlaying] = useState(sound?.playing());
   const [isSeeking, setIsSeeking] = useState(false);
 
-  useEffect(() => {
-    console.log({ currentIndex });
+  console.log({ sound, currentIndex, duration, pos, isPlaying, isSeeking });
 
+  useEffect(() => {
     if (currentIndex === undefined) {
       sound?.stop();
+      return;
+    }
+
+    if (sound && currentIndex === prevIndex) {
       return;
     }
 
@@ -44,6 +50,7 @@ export function Player() {
       format: "mp4",
       html5: false,
     });
+    prevIndex = currentIndex;
 
     newSound.once("load", () => {
       setDuration(newSound?.duration());
@@ -68,8 +75,6 @@ export function Player() {
       setIsPlaying(false);
       goNext();
     });
-
-    console.log({ newSound });
 
     setSound(newSound);
   }, [currentIndex, data, goNext, setSound, sound]);
