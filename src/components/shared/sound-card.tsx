@@ -26,7 +26,6 @@ export function SoundCard({
 
   return (
     <Card
-      key={sound.title}
       onClick={onClick}
       className={cn(
         "group overflow-hidden bg-background/80 hover:bg-background/40 transition-colors",

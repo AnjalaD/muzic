@@ -9,144 +9,101 @@ import {
 } from "@/components/ui/card";
 import { Slider } from "@/components/ui/slider";
 import { useEffect, useState } from "react";
-import { Howl } from "howler";
-import { usePlayerStore } from "@/state/player";
-import { useQueueStore } from "@/state/queue";
+
 import {
   PauseIcon,
   PlayIcon,
+  Repeat1Icon,
+  RepeatIcon,
+  ShuffleIcon,
   SkipBackIcon,
   SkipForwardIcon,
 } from "lucide-react";
-
-let prevIndex: number;
+import { usePlayerControls } from "@/components/hooks/use-player-controls";
 
 export function Player() {
-  const { sound, setSound } = usePlayerStore();
-  const { currentIndex, data, goNext, goPrev } = useQueueStore();
+  const {
+    nowPlaying,
+    play,
+    pause,
+    next,
+    prev,
+    seek,
+    getPosition,
+    toggleRepeat,
+    isPlaying,
+    duration,
+    repeat,
+  } = usePlayerControls();
 
-  const [duration, setDuration] = useState<number>();
-  const [pos, setPos] = useState<number>();
-  const [isPlaying, setIsPlaying] = useState(sound?.playing());
   const [isSeeking, setIsSeeking] = useState(false);
-
-  console.log({ sound, currentIndex, duration, pos, isPlaying, isSeeking });
-
-  useEffect(() => {
-    if (currentIndex === undefined) {
-      sound?.stop();
-      return;
-    }
-
-    if (sound && currentIndex === prevIndex) {
-      return;
-    }
-
-    const soundBlob = data[currentIndex].fileWrapper;
-    if (!(soundBlob instanceof Blob)) return;
-
-    const newSound = new Howl({
-      src: [URL.createObjectURL(soundBlob)],
-      format: "mp4",
-      html5: false,
-    });
-    prevIndex = currentIndex;
-
-    newSound.once("load", () => {
-      setDuration(newSound?.duration());
-    });
-
-    newSound.on("play", () => {
-      setIsPlaying(true);
-      console.log("Playing");
-    });
-
-    newSound.on("pause", () => {
-      setIsPlaying(false);
-    });
-
-    newSound.on("stop", () => {
-      setDuration(undefined);
-      setPos(undefined);
-      setIsPlaying(false);
-    });
-
-    newSound.on("end", () => {
-      setIsPlaying(false);
-      goNext();
-    });
-
-    setSound(newSound);
-  }, [currentIndex, data, goNext, setSound, sound]);
+  const [position, setPosition] = useState<number>();
 
   useEffect(() => {
     if (!isPlaying || isSeeking) return;
 
     const t = setInterval(() => {
-      setPos(sound?.seek());
+      setPosition(getPosition());
     }, 1000);
 
     return () => {
       clearInterval(t);
     };
-  }, [isPlaying, isSeeking, sound]);
+  }, [getPosition, isPlaying, isSeeking]);
 
   return (
     <Card>
       <CardHeader>
         <CardTitle className="overflow-hidden whitespace-nowrap text-ellipsis">
-          {currentIndex !== undefined
-            ? data[currentIndex].title
-            : "Nothing to play"}
+          {nowPlaying?.title ?? "Nothing to play"}
         </CardTitle>
         <CardDescription>
-          {formatDuration(pos) ?? "-"}/{formatDuration(duration) ?? "-"}
+          {formatDuration(position) ?? "-"}/{formatDuration(duration) ?? "-"}
         </CardDescription>
       </CardHeader>
       <CardContent>
         <Slider
-          value={[pos ?? 0]}
+          value={[position ?? 0]}
           max={duration}
           step={1}
           onValueChange={(val) => {
             setIsSeeking(true);
-            setPos(val[0]);
+            setPosition(val[0]);
           }}
           onValueCommit={(val) => {
             setIsSeeking(false);
-            setPos(val[0]);
-            sound?.seek(val[0]);
+            setPosition(val[0]);
+            seek(val[0]);
           }}
         />
       </CardContent>
       <CardFooter className="flex justify-center items-center gap-2">
-        <Button variant="outline" onClick={goPrev}>
+        <Button disabled className="mr-4" variant="outline">
+          <ShuffleIcon />
+        </Button>
+
+        <Button variant="outline" onClick={prev}>
           <SkipBackIcon />
         </Button>
+
         <Button
           onClick={() => {
-            if (data.length === 0) return;
-
-            if (currentIndex === undefined) {
-              goNext();
-              return;
-            }
-
-            if (!sound) {
-              return;
-            }
-
-            if (!sound.playing()) {
-              sound.play();
-            } else {
-              sound.pause();
-            }
+            isPlaying ? pause() : play();
           }}
         >
           {isPlaying ? <PauseIcon /> : <PlayIcon />}
         </Button>
-        <Button variant="outline" onClick={goNext}>
+
+        <Button variant="outline" onClick={next}>
           <SkipForwardIcon />
+        </Button>
+
+        <Button
+          className="ml-4"
+          variant={repeat === "OFF" ? "outline" : "secondary"}
+          onClick={toggleRepeat}
+        >
+          {repeat === "ONE" ? <Repeat1Icon /> : <RepeatIcon />}
         </Button>
       </CardFooter>
     </Card>

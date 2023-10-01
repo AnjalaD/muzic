@@ -1,24 +1,25 @@
-import { Howl } from "howler";
 import { create } from "zustand";
 import { devtools } from "zustand/middleware";
 import { immer } from "zustand/middleware/immer";
+import { Howl } from "howler";
+import { Sound } from "./sounds";
+
+type SoundInstance = Sound & {
+  instance: Howl;
+};
 
 type PlayerState = {
-  sound?: Howl;
-  setSound: (newSound: Howl) => void;
+  sound?: SoundInstance;
+  setSound: (newSound: SoundInstance) => void;
 };
 
 export const usePlayerStore = create<PlayerState>()(
   devtools(
     immer((set) => ({
       sound: undefined,
-      setSound: (newSound: Howl) => {
+      setSound: (newSound) => {
         set((state) => {
-          if (state.sound) {
-            state.sound.stop();
-          }
           state.sound = newSound;
-          state.sound.play();
         });
       },
     }))

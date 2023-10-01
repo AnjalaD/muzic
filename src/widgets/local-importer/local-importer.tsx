@@ -21,11 +21,14 @@ export function LocalImporter() {
     const newSounds: Sound[] = [];
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
+      let title = file.name;
+
       if (file instanceof Blob) {
         try {
           const meta = await id3.fromFile(file);
           console.log({ meta });
 
+          title = meta?.title ?? title;
           const genre = (meta?.genre ?? undefined) as string | undefined;
           const cover =
             meta?.images && (meta.images as unknown[]).length > 0
@@ -33,8 +36,9 @@ export function LocalImporter() {
               : undefined;
 
           newSounds.push({
+            id: title,
             fileWrapper: file,
-            title: meta?.title || file.name,
+            title,
             meta: {
               album: meta?.album ?? undefined,
               artist: meta?.artist ?? undefined,
@@ -47,6 +51,7 @@ export function LocalImporter() {
           console.log(e);
 
           newSounds.push({
+            id: title,
             fileWrapper: file,
             title: file.name,
             meta: {

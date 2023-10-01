@@ -22,17 +22,17 @@ export function Library() {
         <CardDescription>Everything you have.</CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-2">
-        {[...data.values()].map((s) => {
+        {[...data.values()].map((sound) => {
           return (
             <SoundCard
-              key={s.title}
-              sound={s}
+              key={sound.id}
+              sound={sound}
               actions={
                 <div className="flex gap-2 items-center mr-4">
                   <Button
                     size="sm"
                     variant="ghost"
-                    onClick={() => addToQueue(s)}
+                    onClick={() => addToQueue(sound.id)}
                   >
                     <ListPlusIcon />
                   </Button>

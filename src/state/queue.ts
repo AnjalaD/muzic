@@ -1,13 +1,13 @@
 import { create } from "zustand";
 import { devtools } from "zustand/middleware";
 import { immer } from "zustand/middleware/immer";
-import { Sound } from "./sounds";
 
 type QueueState = {
-  data: Sound[];
+  _history: string[];
+  queue: string[];
   repeat: boolean;
-  currentIndex?: number;
-  add: (...items: Sound[]) => void;
+
+  add: (...items: string[]) => void;
   remove: (index: number) => void;
   removeAll: () => void;
   goTo: (index: number) => void;
@@ -19,81 +19,105 @@ type QueueState = {
 export const useQueueStore = create<QueueState>()(
   devtools(
     immer((set) => ({
-      data: [],
+      _history: [],
+      queue: [],
       repeat: false,
-      currentIndex: undefined,
 
       add: (...items) => {
-        console.log("Adding");
         set((state) => {
-          state.data.push(...items);
+          // add to end of the queue
+          state.queue.push(...items);
         });
       },
+
       remove: (index) => {
+        // using positive(with zero) indexes for queue -> [0, 1, 2]
+        // using negative indexes for history -> [-1, -2, -3]
         set((state) => {
-          state.data.splice(index, 1);
-          state.currentIndex = undefined;
+          if (index >= 0) {
+            state.queue.splice(index, 1);
+          }
+          state._history.splice(-(index + 1), 1);
         });
       },
+
       removeAll: () => {
+        // just set arrays empty
         set((state) => {
-          state.data = [];
-          state.currentIndex = undefined;
+          state.queue = [];
+          state._history = [];
         });
       },
+
       goTo: (index) => {
         set((state) => {
-          if (state.data.length == 0) return;
+          // for positive indexes
+          if (index >= 0) {
+            if (
+              index === 0 ||
+              state.queue.length == 0 ||
+              index + 1 > state.queue.length
+            ) {
+              return;
+            }
 
-          if (state.currentIndex === index) {
+            const newQueue = state.queue.slice(index);
+            const skipped = state.queue.slice(0, index);
+            state.queue = newQueue;
+            state._history.push(...skipped);
             return;
           }
-
-          if (index >= state.data.length) {
+          // for negative indexes
+          // negative indexes will be only used when repeat is enabled
+          const historyIndex = -(index + 1);
+          if (
+            state._history.length == 0 ||
+            historyIndex + 1 > state._history.length
+          ) {
             return;
           }
-
-          state.currentIndex = index;
+          const newHistory = state._history.slice(0, historyIndex);
+          const toQueue = state._history.slice(historyIndex);
+          if (state._history.length === 0) return;
+          state._history = newHistory;
+          state.queue = [...toQueue, ...state.queue];
         });
       },
+
       goNext: () => {
         set((state) => {
-          if (state.data.length == 0) return;
+          if (state.queue.length === 0 && state._history.length === 0) return;
 
-          if (state.currentIndex === undefined) {
-            state.currentIndex = 0;
+          if (state.queue.length === 0 || state.queue.length === 1) {
+            if (!state.repeat) return;
+
+            state.queue = [...state._history];
+            state._history = [];
             return;
           }
 
-          // if (state.currentIndex + 1 === state.data.length && !state.repeat) {
-          //   state.currentIndex = undefined;
-          //   return;
-          // }
-
-          state.currentIndex = (state.currentIndex + 1) % state.data.length;
+          state._history.push(state.queue[0]);
+          state.queue = state.queue.slice(1);
         });
       },
+
       goPrev: () => {
         set((state) => {
-          if (state.data.length == 0) return;
+          if (state.queue.length === 0 && state._history.length === 0) return;
 
-          if (state.currentIndex === undefined) {
-            state.currentIndex = state.data.length - 1;
+          if (state._history.length === 0) {
+            if (!state.repeat) return;
+
+            state._history = state.queue.slice(0, -2);
+            state.queue = [state.queue[-1]];
             return;
           }
 
-          if (state.currentIndex === 0 && !state.repeat) {
-            return;
-          }
-
-          if (state.currentIndex === 0) {
-            state.currentIndex = state.data.length - 1;
-            return;
-          }
-
-          state.currentIndex = state.currentIndex - 1;
+          state.queue = [state._history[-1], ...state.queue];
+          state._history = state._history.slice(0, -1);
         });
       },
+
       toggleRepeat: () => {
         set((state) => {
           state.repeat = !state.repeat;

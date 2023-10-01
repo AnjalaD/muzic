@@ -4,6 +4,7 @@ import { devtools } from "zustand/middleware";
 import { immer } from "zustand/middleware/immer";
 
 export type Sound = {
+  id: string;
   fileWrapper: FileWrapper;
   title: string;
   meta: {
@@ -34,13 +35,13 @@ export const useSoundsStore = create<PlayerState>()(
         console.log("Adding");
         set((state) => {
           for (const item of items) {
-            state.data.set(item.title, item);
+            state.data.set(item.id, item);
           }
         });
       },
-      remove: (index) => {
+      remove: (key) => {
         set((state) => {
-          state.data.delete(index);
+          state.data.delete(key);
         });
       },
     })),
